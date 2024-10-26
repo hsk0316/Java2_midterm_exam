@@ -7,24 +7,21 @@ import java.awt.event.ActionListener;
 
 /**
  * 계산기 GUI 프로그램.
- * 이 클래스는 JFrame을 확장하여 기본적인 계산기의 사용자 인터페이스(GUI)를 구성합니다.
- * 더하기, 빼기, 곱하기, 나누기 등의 연산을 위한 버튼 및 숫자 입력 버튼을 포함하고 있습니다.
- *
- * <p>이 클래스는 버튼을 클릭할 때 해당 숫자와 연산자가 디스플레이에 나타나는 기능을 제공합니다.
- * 연산 기능은 아직 구현되지 않았으며, 향후 업데이트에서 추가될 수 있습니다.</p>
+ * 이 클래스는 JFrame을 확장하여 계산기의 기본 UI를 구성합니다.
+ * 더하기, 빼기, 곱하기, 나누기 등의 연산 버튼을 포함한 계산기의 GUI를 구현합니다.
  *
  * @author 한승규
- * @version 1.2.0
- * @since 2024-10-20
+ * @version 2.0.0
+ * @since 2024-10-27
  *
  * @created 2024-10-17
- * @lastModified 2024-10-20
+ * @lastModified 2024-10-27
  *
  * @changelog
  * <ul>
  *   <li>2024-10-17: 최초 생성 (한승규)</li>
- *   <li>2024-10-19: 숫자 버튼 클릭 시 디스플레이에 숫자가 나타나도록 기능 추가 (한승규)</li>
  *   <li>2024-10-20: 연산자 버튼 클릭 시 디스플레이에 연산자가 나타나도록 기능 추가 (한승규)</li>
+ *   <li>2024-10-27: 기본적인 사칙연산 기능 추가 (한승규)</li>
  * </ul>
  */
 public class Calculator extends JFrame {
@@ -35,19 +32,23 @@ public class Calculator extends JFrame {
      */
     private JTextField display;
 
+    private double num1 = 0;        // 첫 번째 숫자
+    private double num2 = 0;        // 두 번째 숫자
+    private String operator = "";   // 연산자
+
     /**
      * 계산기 GUI를 초기화하는 생성자입니다.
      * 프레임, 디스플레이 및 버튼들을 설정하고 레이아웃에 배치합니다.
      * 이 생성자는 계산기의 GUI 요소들을 구성하는 역할을 합니다.
      *
      * @created 2024-10-17
-     * @lastModified 2024-10-20
-     * @see <a href="https://limunosekai.github.io/java/2021/01/04/java-day-20/">Java Day 20</a>
+     * @lastModified 2024-10-27
+     *
      * @changelog
      * <ul>
      *   <li>2024-10-17: 최초 생성 (한승규)</li>
-     *   <li>2024-10-19: 숫자 버튼 클릭 시 디스플레이에 숫자가 나타나도록 기능 추가 (한승규)</li>
      *   <li>2024-10-20: 연산자 버튼 클릭 시 디스플레이에 연산자가 나타나도록 기능 추가 (한승규)</li>
+     *   <li>2024-10-27: 기본적인 사칙연산 기능 추가 (한승규)</li>
      * </ul>
      */
     public Calculator() {
@@ -74,7 +75,7 @@ public class Calculator extends JFrame {
         buttonPanel.setLayout(new GridLayout(5, 4, 5, 5));
         buttonPanel.setBackground(Color.YELLOW);
 
-        // 버튼 배열 (각 버튼의 텍스트)
+        // 버튼 배열
         String[] buttons = {
                 "←", "CE", "C", "÷",
                 "7", "8", "9", "×",
@@ -83,22 +84,84 @@ public class Calculator extends JFrame {
                 "0", "+/-", ".", "="
         };
 
-        // 버튼 추가 및 이벤트 리스너 설정
+        // 버튼 추가
         for (String text : buttons) {
             JButton button = new JButton(text);
             button.setFont(new Font("Arial", Font.BOLD, 20));
 
-            // 숫자 및 연산자 버튼에 이벤트 추가
-            if ("0123456789".contains(text) || "÷×-+".contains(text)) {
+            // 숫자 버튼 처리 (0~9)
+            if ("0123456789".contains(text)) {
                 button.addActionListener(new ActionListener() {
                     @Override
                     public void actionPerformed(ActionEvent e) {
-                        // 현재 텍스트가 "0"인 경우에는 새로운 숫자 또는 연산자로 교체, 그렇지 않으면 이어서 추가
                         if (display.getText().equals("0")) {
                             display.setText(text);
                         } else {
                             display.setText(display.getText() + text);
                         }
+                    }
+                });
+            }
+
+            // 연산자 버튼 처리 (÷, ×, -, +)
+            else if ("÷×-+".contains(text)) {
+                button.addActionListener(new ActionListener() {
+                    @Override
+                    public void actionPerformed(ActionEvent e) {
+                        num1 = Double.parseDouble(display.getText());  // 첫 번째 숫자 저장
+                        operator = text;  // 연산자 저장
+                        display.setText(display.getText() + " " + operator + " ");  // 숫자 뒤에 연산자를 표시
+                    }
+                });
+            }
+
+            // '=' 버튼 처리: 계산 수행
+            else if (text.equals("=")) {
+                button.addActionListener(new ActionListener() {
+                    @Override
+                    public void actionPerformed(ActionEvent e) {
+                        String[] parts = display.getText().split(" ");  // 공백으로 숫자와 연산자 분리
+                        if (parts.length == 3) {
+                            num1 = Double.parseDouble(parts[0]);
+                            operator = parts[1];
+                            num2 = Double.parseDouble(parts[2]);
+
+                            double result = 0;
+
+                            // 연산자에 따른 계산 수행
+                            switch (operator) {
+                                case "+":
+                                    result = num1 + num2;
+                                    break;
+                                case "-":
+                                    result = num1 - num2;
+                                    break;
+                                case "×":
+                                    result = num1 * num2;
+                                    break;
+                                case "÷":
+                                    if (num2 != 0) {
+                                        result = num1 / num2;
+                                    } else {
+                                        display.setText("Error");
+                                        return;
+                                    }
+                                    break;
+                            }
+
+                            display.setText(String.valueOf(result));  // 결과 표시
+                            num1 = result;  // 결과를 num1에 저장하여 연속된 계산 가능
+                        }
+                    }
+                });
+            }
+
+            // 기타 버튼: 기능 미구현
+            else {
+                button.addActionListener(new ActionListener() {
+                    @Override
+                    public void actionPerformed(ActionEvent e) {
+                        // 기능은 나중에 구현
                     }
                 });
             }
@@ -117,13 +180,13 @@ public class Calculator extends JFrame {
      * @param args 명령행 인수 (사용하지 않음)
      *
      * @created 2024-10-17
-     * @lastModified 2024-10-20
+     * @lastModified 2024-10-27
      *
      * @changelog
      * <ul>
      *   <li>2024-10-17: 최초 생성 (한승규)</li>
-     *   <li>2024-10-19: 숫자 버튼 클릭 시 디스플레이에 숫자가 나타나도록 기능 추가 (한승규)</li>
      *   <li>2024-10-20: 연산자 버튼 클릭 시 디스플레이에 연산자가 나타나도록 기능 추가 (한승규)</li>
+     *   <li>2024-10-27: 기본적인 사칙연산 기능 추가 (한승규)</li>
      * </ul>
      */
     public static void main(String[] args) {
@@ -133,4 +196,3 @@ public class Calculator extends JFrame {
         });
     }
 }
-
