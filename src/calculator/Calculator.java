@@ -8,14 +8,18 @@ import java.awt.event.ActionListener;
 /**
  * 계산기 GUI 프로그램.
  * 이 클래스는 JFrame을 확장하여 계산기의 기본 UI를 구성합니다.
- * 더하기, 빼기, 곱하기, 나누기 등의 연산 버튼을 포함한 계산기의 GUI를 구현하며, 소수점 및 +/- 연산, CE/C 등의 기능도 제공합니다.
+ * 더하기, 빼기, 곱하기, 나누기 등의 연산 버튼을 포함하여,
+ * 소수점 및 +/- 연산, CE/C 등의 기능도 제공합니다.
+ *
+ * <p>이 프로그램은 사용자가 입력한 값을 텍스트 필드에 표시하고,
+ * 다양한 계산 기능을 제공합니다.</p>
  *
  * @author 한승규
- * @version 4.0.0
+ * @version 4.0.1
  * @since 2024-10-17
  *
  * @created 2024-10-17
- * @lastModified 2024-10-29
+ * @lastModified 2024-10-30
  *
  * @changelog
  * <ul>
@@ -25,6 +29,7 @@ import java.awt.event.ActionListener;
  *   <li>2024-10-27: 기본적인 사칙연산 기능 추가 (한승규)</li>
  *   <li>2024-10-28: 소수점 및 +/- 기능 추가 (한승규)</li>
  *   <li>2024-10-29: CE, C, ← 버튼 기능 추가 (한승규)</li>
+ *   <li>2024-10-30: +/- 기능 수정 / 현재 입력된 숫자의 부호가 반전되도록 동작 (한승규)</li>
  * </ul>
  */
 public class Calculator extends JFrame {
@@ -46,7 +51,7 @@ public class Calculator extends JFrame {
      * 이 생성자는 계산기의 GUI 요소들을 구성하는 역할을 합니다.
      *
      * @created 2024-10-17
-     * @lastModified 2024-10-29
+     * @lastModified 2024-10-30
      *
      * @changelog
      * <ul>
@@ -56,6 +61,7 @@ public class Calculator extends JFrame {
      *   <li>2024-10-27: 기본적인 사칙연산 기능 추가 (한승규)</li>
      *   <li>2024-10-28: 소수점 및 +/- 기능 추가 (한승규)</li>
      *   <li>2024-10-29: CE, C, ← 버튼 기능 추가 (한승규)</li>
+     *   <li>2024-10-30: +/- 기능 수정 / 현재 입력된 숫자의 부호가 반전되도록 동작 (한승규)</li>
      * </ul>
      */
     public Calculator() {
@@ -143,12 +149,19 @@ public class Calculator extends JFrame {
                     }
                 });
             }
-            // +/- 버튼 처리
+            // +/- 버튼 처리 수정
             else if (text.equals("+/-")) {
                 button.addActionListener(e -> {
-                    double currentValue = Double.parseDouble(display.getText());
-                    currentValue = currentValue * -1;
-                    display.setText(String.valueOf(currentValue));
+                    String currentText = display.getText();
+                    String[] parts = currentText.split(" ");
+
+                    if (parts.length > 0) {
+                        String lastNumber = parts[parts.length - 1];
+                        double value = Double.parseDouble(lastNumber) * -1;  // 부호 반전
+                        parts[parts.length - 1] = String.valueOf(value);
+
+                        display.setText(String.join(" ", parts));  // 부호 변경된 숫자 업데이트
+                    }
                 });
             }
             // 소수점 버튼 처리
@@ -193,18 +206,18 @@ public class Calculator extends JFrame {
      * 이 메서드는 GUI를 시작하고 화면에 표시합니다.
      *
      * @param args 명령행 인수 (사용하지 않음)
-     *
      * @created 2024-10-17
      * @lastModified 2024-10-29
      *
      * @changelog
      * <ul>
-     *   <li>2024-10-17: 최초 생성 UI 디자인, 버튼 배치 (한승규)</li>
-     *   <li>2024-10-19: 숫자 버튼 클릭 시 디스플레이에 숫자가 나타나도록 기능 추가 (한승규)</li>
+     *   <li>2024-10-17: 최초 생성 (한승규)</li>
      *   <li>2024-10-20: 연산자 버튼 클릭 시 디스플레이에 연산자가 나타나도록 기능 추가 (한승규)</li>
      *   <li>2024-10-27: 기본적인 사칙연산 기능 추가 (한승규)</li>
      *   <li>2024-10-28: 소수점 및 +/- 기능 추가 (한승규)</li>
      *   <li>2024-10-29: CE, C, ← 버튼 기능 추가 (한승규)</li>
+     *   <li>2024-10-30: +/- 기능 수정 / 현재 입력된 숫자의 부호가 반전되도록 동작 (한승규)</li>
+     *
      * </ul>
      */
     public static void main(String[] args) {
@@ -214,3 +227,4 @@ public class Calculator extends JFrame {
         });
     }
 }
+
