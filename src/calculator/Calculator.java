@@ -14,8 +14,9 @@ import java.awt.event.ActionListener;
  * <p>이 프로그램은 사용자가 입력한 값을 텍스트 필드에 표시하고,
  * 다양한 계산 기능을 제공합니다.</p>
  *
- * @author 한승규
- * @version 4.0.1
+ * <p>특히, 마지막 문자 삭제 시 소수점 사용 상태가 초기화되도록 기능이 추가되었습니다.</p>
+ *
+ * @version 4.0.2
  * @since 2024-10-17
  *
  * @created 2024-10-17
@@ -30,6 +31,7 @@ import java.awt.event.ActionListener;
  *   <li>2024-10-28: 소수점 및 +/- 기능 추가 (한승규)</li>
  *   <li>2024-10-29: CE, C, ← 버튼 기능 추가 (한승규)</li>
  *   <li>2024-10-30: +/- 기능 수정 / 현재 입력된 숫자의 부호가 반전되도록 동작 (한승규)</li>
+ *   <li>2024-10-30: 소수점 상태 초기화 (한승규)</li>
  * </ul>
  */
 public class Calculator extends JFrame {
@@ -52,6 +54,7 @@ public class Calculator extends JFrame {
      *
      * @created 2024-10-17
      * @lastModified 2024-10-30
+     * @see <a href="https://limunosekai.github.io/java/2021/01/04/java-day-20/">Java Day 20</a>
      *
      * @changelog
      * <ul>
@@ -62,8 +65,10 @@ public class Calculator extends JFrame {
      *   <li>2024-10-28: 소수점 및 +/- 기능 추가 (한승규)</li>
      *   <li>2024-10-29: CE, C, ← 버튼 기능 추가 (한승규)</li>
      *   <li>2024-10-30: +/- 기능 수정 / 현재 입력된 숫자의 부호가 반전되도록 동작 (한승규)</li>
+     *   <li>2024-10-30: 소수점 상태 초기화 (한승규)</li>
      * </ul>
      */
+
     public Calculator() {
         // 프레임 설정
         setTitle("계산기");
@@ -173,16 +178,28 @@ public class Calculator extends JFrame {
                     }
                 });
             }
-            // ← 버튼 처리: 마지막 문자 삭제
+            // ← 버튼 처리: 마지막 문자 삭제 및 소수점 초기화
             else if (text.equals("←")) {
                 button.addActionListener(e -> {
                     String currentText = display.getText();
-                    display.setText(currentText.length() > 1 ? currentText.substring(0, currentText.length() - 1) : "0");
+                    if (currentText.length() > 1) {
+                        // 마지막 문자가 소수점이면 decimalUsed를 false로 설정
+                        if (currentText.endsWith(".")) {
+                            decimalUsed = false;
+                        }
+                        display.setText(currentText.substring(0, currentText.length() - 1));
+                    } else {
+                        display.setText("0");
+                        decimalUsed = false;
+                    }
                 });
             }
             // CE 버튼 처리: 현재 숫자만 초기화
             else if (text.equals("CE")) {
-                button.addActionListener(e -> display.setText("0"));
+                button.addActionListener(e -> {
+                    display.setText("0");
+                    decimalUsed = false;  // 소수점 사용 초기화
+                });
             }
             // C 버튼 처리: 모든 초기화
             else if (text.equals("C")) {
@@ -217,9 +234,11 @@ public class Calculator extends JFrame {
      *   <li>2024-10-28: 소수점 및 +/- 기능 추가 (한승규)</li>
      *   <li>2024-10-29: CE, C, ← 버튼 기능 추가 (한승규)</li>
      *   <li>2024-10-30: +/- 기능 수정 / 현재 입력된 숫자의 부호가 반전되도록 동작 (한승규)</li>
+     *   <li>2024-10-30: 소수점 상태 초기화 (한승규)</li>
      *
      * </ul>
      */
+
     public static void main(String[] args) {
         SwingUtilities.invokeLater(() -> {
             Calculator calculator = new Calculator();
