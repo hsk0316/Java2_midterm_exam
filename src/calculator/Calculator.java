@@ -14,7 +14,7 @@ import java.awt.event.ActionListener;
  * <p>오류 메시지가 표시된 후 오류 상태를 초기화하고,
  * 오류 메시지 표시 시 숫자 입력이 정상적으로 되돌아가도록 개선되었습니다.</p>
  *
- * @version 4.0.3
+ * @version 4.0.4
  * @since 2024-10-17
  *
  * @created 2024-10-17
@@ -30,10 +30,10 @@ import java.awt.event.ActionListener;
  *   <li>2024-10-29: CE, C, ← 버튼 기능 추가 (한승규)</li>
  *   <li>2024-10-30: +/- 기능 수정 및 소수점 상태 초기화 기능 추가 (한승규)</li>
  *   <li>2024-10-31: 오류 메시지 표시 후 입력 초기화 추가 (한승규)</li>
+ *   <li>2024-10-31: 0으로 나누기 시 오류 메시지 추가 (한승규)</li>
  * </ul>
  */
 public class Calculator extends JFrame {
-
     /**
      * 사용자가 입력한 숫자 및 연산자를 표시하는 JTextField 컴포넌트입니다.
      * 숫자와 연산자 버튼을 클릭할 때마다 해당 값이 이 필드에 표시됩니다.
@@ -63,6 +63,7 @@ public class Calculator extends JFrame {
      *  <li>2024-10-29: CE, C, ← 버튼 기능 추가 (한승규)</li>
      *  <li>2024-10-30: +/- 기능 수정 및 소수점 상태 초기화 기능 추가 (한승규)</li>
      *  <li>2024-10-31: 오류 메시지 표시 후 입력 초기화 추가 (한승규)</li>
+     *  <li>2024-10-31: 0으로 나누기 시 오류 메시지 추가 (한승규)</li>
      * </ul>
      */
 
@@ -148,11 +149,12 @@ public class Calculator extends JFrame {
                                 case "-" -> result = num1 - num2;
                                 case "×" -> result = num1 * num2;
                                 case "÷" -> {
-                                    if (num2 != 0) result = num1 / num2;
-                                    else {
-                                        display.setText("ERROR");
+                                    if (num2 == 0) {
+                                        display.setText("ERROR");  // 0으로 나누기 시 오류 표시
                                         errorShown = true;
                                         return;
+                                    } else {
+                                        result = num1 / num2;
                                     }
                                 }
                             }
