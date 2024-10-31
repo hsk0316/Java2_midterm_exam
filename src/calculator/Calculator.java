@@ -11,16 +11,14 @@ import java.awt.event.ActionListener;
  * 더하기, 빼기, 곱하기, 나누기 등의 연산 버튼을 포함하여,
  * 소수점 및 +/- 연산, CE/C 등의 기능도 제공합니다.
  *
- * <p>이 프로그램은 사용자가 입력한 값을 텍스트 필드에 표시하고,
- * 다양한 계산 기능을 제공합니다.</p>
+ * <p>오류 메시지가 표시된 후 오류 상태를 초기화하고,
+ * 오류 메시지 표시 시 숫자 입력이 정상적으로 되돌아가도록 개선되었습니다.</p>
  *
- * <p>특히, 마지막 문자 삭제 시 소수점 사용 상태가 초기화되도록 기능이 추가되었습니다.</p>
- *
- * @version 4.0.2
+ * @version 4.0.3
  * @since 2024-10-17
  *
  * @created 2024-10-17
- * @lastModified 2024-10-30
+ * @lastModified 2024-10-31
  *
  * @changelog
  * <ul>
@@ -30,8 +28,8 @@ import java.awt.event.ActionListener;
  *   <li>2024-10-27: 기본적인 사칙연산 기능 추가 (한승규)</li>
  *   <li>2024-10-28: 소수점 및 +/- 기능 추가 (한승규)</li>
  *   <li>2024-10-29: CE, C, ← 버튼 기능 추가 (한승규)</li>
- *   <li>2024-10-30: +/- 기능 수정 / 현재 입력된 숫자의 부호가 반전되도록 동작 (한승규)</li>
- *   <li>2024-10-30: 소수점 상태 초기화 (한승규)</li>
+ *   <li>2024-10-30: +/- 기능 수정 및 소수점 상태 초기화 기능 추가 (한승규)</li>
+ *   <li>2024-10-31: 오류 메시지 표시 후 입력 초기화 추가 (한승규)</li>
  * </ul>
  */
 public class Calculator extends JFrame {
@@ -40,32 +38,31 @@ public class Calculator extends JFrame {
      * 사용자가 입력한 숫자 및 연산자를 표시하는 JTextField 컴포넌트입니다.
      * 숫자와 연산자 버튼을 클릭할 때마다 해당 값이 이 필드에 표시됩니다.
      */
-    private JTextField display;
 
+    private JTextField display;
     private double num1 = 0;        // 첫 번째 숫자
     private double num2 = 0;        // 두 번째 숫자
     private String operator = "";   // 연산자
     private boolean decimalUsed = false;  // 소수점 사용 여부
+    private boolean errorShown = false;   // 오류 메시지가 표시되었는지 여부
 
     /**
      * 계산기 GUI를 초기화하는 생성자입니다.
      * 프레임, 디스플레이 및 버튼들을 설정하고 레이아웃에 배치합니다.
      * 이 생성자는 계산기의 GUI 요소들을 구성하는 역할을 합니다.
-     *
      * @created 2024-10-17
-     * @lastModified 2024-10-30
-     * @see <a href="https://limunosekai.github.io/java/2021/01/04/java-day-20/">Java Day 20</a>
+     * @lastModified 2024-10-31
      *
      * @changelog
      * <ul>
-     *   <li>2024-10-17: 최초 생성 UI 디자인, 버튼 배치 (한승규)</li>
-     *   <li>2024-10-19: 숫자 버튼 클릭 시 디스플레이에 숫자가 나타나도록 기능 추가 (한승규)</li>
-     *   <li>2024-10-20: 연산자 버튼 클릭 시 디스플레이에 연산자가 나타나도록 기능 추가 (한승규)</li>
-     *   <li>2024-10-27: 기본적인 사칙연산 기능 추가 (한승규)</li>
-     *   <li>2024-10-28: 소수점 및 +/- 기능 추가 (한승규)</li>
-     *   <li>2024-10-29: CE, C, ← 버튼 기능 추가 (한승규)</li>
-     *   <li>2024-10-30: +/- 기능 수정 / 현재 입력된 숫자의 부호가 반전되도록 동작 (한승규)</li>
-     *   <li>2024-10-30: 소수점 상태 초기화 (한승규)</li>
+     *  <li>2024-10-17: 최초 생성 UI 디자인, 버튼 배치 (한승규)</li>
+     *  <li>2024-10-19: 숫자 버튼 클릭 시 디스플레이에 숫자가 나타나도록 기능 추가 (한승규)</li>
+     *  <li>2024-10-20: 연산자 버튼 클릭 시 디스플레이에 연산자가 나타나도록 기능 추가 (한승규)</li>
+     *  <li>2024-10-27: 기본적인 사칙연산 기능 추가 (한승규)</li>
+     *  <li>2024-10-28: 소수점 및 +/- 기능 추가 (한승규)</li>
+     *  <li>2024-10-29: CE, C, ← 버튼 기능 추가 (한승규)</li>
+     *  <li>2024-10-30: +/- 기능 수정 및 소수점 상태 초기화 기능 추가 (한승규)</li>
+     *  <li>2024-10-31: 오류 메시지 표시 후 입력 초기화 추가 (한승규)</li>
      * </ul>
      */
 
@@ -110,6 +107,10 @@ public class Calculator extends JFrame {
             // 숫자 버튼 처리
             if ("0123456789".contains(text)) {
                 button.addActionListener(e -> {
+                    if (errorShown) {  // 오류 메시지 후 초기화
+                        display.setText("0");
+                        errorShown = false;
+                    }
                     if (display.getText().equals("0")) {
                         display.setText(text);
                     } else {
@@ -120,52 +121,68 @@ public class Calculator extends JFrame {
             // 연산자 버튼 처리
             else if ("÷×-+".contains(text)) {
                 button.addActionListener(e -> {
-                    num1 = Double.parseDouble(display.getText());  // 첫 번째 숫자 저장
-                    operator = text;  // 연산자 저장
-                    display.setText(display.getText() + " " + operator + " ");
-                    decimalUsed = false;  // 연산 후 소수점 사용 초기화
+                    try {
+                        num1 = Double.parseDouble(display.getText());  // 첫 번째 숫자 저장
+                        operator = text;  // 연산자 저장
+                        display.setText(display.getText() + " " + operator + " ");
+                        decimalUsed = false;  // 연산 후 소수점 사용 초기화
+                    } catch (NumberFormatException ex) {
+                        display.setText("ERROR");  // 형식 오류 처리
+                        errorShown = true;
+                    }
                 });
             }
             // '=' 버튼 처리
             else if (text.equals("=")) {
                 button.addActionListener(e -> {
-                    String[] parts = display.getText().split(" ");
-                    if (parts.length == 3) {
-                        num1 = Double.parseDouble(parts[0]);
-                        operator = parts[1];
-                        num2 = Double.parseDouble(parts[2]);
+                    try {
+                        String[] parts = display.getText().split(" ");
+                        if (parts.length == 3) {
+                            num1 = Double.parseDouble(parts[0]);
+                            operator = parts[1];
+                            num2 = Double.parseDouble(parts[2]);
 
-                        double result = 0;
-                        switch (operator) {
-                            case "+" -> result = num1 + num2;
-                            case "-" -> result = num1 - num2;
-                            case "×" -> result = num1 * num2;
-                            case "÷" -> {
-                                if (num2 != 0) result = num1 / num2;
-                                else {
-                                    display.setText("Error");
-                                    return;
+                            double result = 0;
+                            switch (operator) {
+                                case "+" -> result = num1 + num2;
+                                case "-" -> result = num1 - num2;
+                                case "×" -> result = num1 * num2;
+                                case "÷" -> {
+                                    if (num2 != 0) result = num1 / num2;
+                                    else {
+                                        display.setText("ERROR");
+                                        errorShown = true;
+                                        return;
+                                    }
                                 }
                             }
+                            display.setText(String.valueOf(result));
+                            num1 = result;
+                            decimalUsed = false;
                         }
-                        display.setText(String.valueOf(result));
-                        num1 = result;
-                        decimalUsed = false;
+                    } catch (NumberFormatException ex) {
+                        display.setText("ERROR");  // 형식 오류 처리
+                        errorShown = true;
                     }
                 });
             }
             // +/- 버튼 처리 수정
             else if (text.equals("+/-")) {
                 button.addActionListener(e -> {
-                    String currentText = display.getText();
-                    String[] parts = currentText.split(" ");
+                    try {
+                        String currentText = display.getText();
+                        String[] parts = currentText.split(" ");
 
-                    if (parts.length > 0) {
-                        String lastNumber = parts[parts.length - 1];
-                        double value = Double.parseDouble(lastNumber) * -1;  // 부호 반전
-                        parts[parts.length - 1] = String.valueOf(value);
+                        if (parts.length > 0) {
+                            String lastNumber = parts[parts.length - 1];
+                            double value = Double.parseDouble(lastNumber) * -1;  // 부호 반전
+                            parts[parts.length - 1] = String.valueOf(value);
 
-                        display.setText(String.join(" ", parts));  // 부호 변경된 숫자 업데이트
+                            display.setText(String.join(" ", parts));  // 부호 변경된 숫자 업데이트
+                        }
+                    } catch (NumberFormatException ex) {
+                        display.setText("ERROR");  // 부호 반전 중 오류 처리
+                        errorShown = true;
                     }
                 });
             }
@@ -173,6 +190,10 @@ public class Calculator extends JFrame {
             else if (text.equals(".")) {
                 button.addActionListener(e -> {
                     if (!decimalUsed) {
+                        if (errorShown) {  // 오류 메시지 후 초기화
+                            display.setText("0");
+                            errorShown = false;
+                        }
                         display.setText(display.getText() + ".");
                         decimalUsed = true;
                     }
@@ -181,16 +202,20 @@ public class Calculator extends JFrame {
             // ← 버튼 처리: 마지막 문자 삭제 및 소수점 초기화
             else if (text.equals("←")) {
                 button.addActionListener(e -> {
-                    String currentText = display.getText();
-                    if (currentText.length() > 1) {
-                        // 마지막 문자가 소수점이면 decimalUsed를 false로 설정
-                        if (currentText.endsWith(".")) {
+                    if (errorShown) {  // 오류 메시지 후 초기화
+                        display.setText("0");
+                        errorShown = false;
+                    } else {
+                        String currentText = display.getText();
+                        if (currentText.length() > 1) {
+                            if (currentText.endsWith(".")) {
+                                decimalUsed = false;
+                            }
+                            display.setText(currentText.substring(0, currentText.length() - 1));
+                        } else {
+                            display.setText("0");
                             decimalUsed = false;
                         }
-                        display.setText(currentText.substring(0, currentText.length() - 1));
-                    } else {
-                        display.setText("0");
-                        decimalUsed = false;
                     }
                 });
             }
@@ -198,7 +223,8 @@ public class Calculator extends JFrame {
             else if (text.equals("CE")) {
                 button.addActionListener(e -> {
                     display.setText("0");
-                    decimalUsed = false;  // 소수점 사용 초기화
+                    decimalUsed = false;
+                    errorShown = false;  // 오류 상태 초기화
                 });
             }
             // C 버튼 처리: 모든 초기화
@@ -209,6 +235,7 @@ public class Calculator extends JFrame {
                     num2 = 0;
                     operator = "";
                     decimalUsed = false;
+                    errorShown = false;  // 오류 상태 초기화
                 });
             }
             buttonPanel.add(button);
@@ -223,22 +250,7 @@ public class Calculator extends JFrame {
      * 이 메서드는 GUI를 시작하고 화면에 표시합니다.
      *
      * @param args 명령행 인수 (사용하지 않음)
-     * @created 2024-10-17
-     * @lastModified 2024-10-29
-     *
-     * @changelog
-     * <ul>
-     *   <li>2024-10-17: 최초 생성 (한승규)</li>
-     *   <li>2024-10-20: 연산자 버튼 클릭 시 디스플레이에 연산자가 나타나도록 기능 추가 (한승규)</li>
-     *   <li>2024-10-27: 기본적인 사칙연산 기능 추가 (한승규)</li>
-     *   <li>2024-10-28: 소수점 및 +/- 기능 추가 (한승규)</li>
-     *   <li>2024-10-29: CE, C, ← 버튼 기능 추가 (한승규)</li>
-     *   <li>2024-10-30: +/- 기능 수정 / 현재 입력된 숫자의 부호가 반전되도록 동작 (한승규)</li>
-     *   <li>2024-10-30: 소수점 상태 초기화 (한승규)</li>
-     *
-     * </ul>
      */
-
     public static void main(String[] args) {
         SwingUtilities.invokeLater(() -> {
             Calculator calculator = new Calculator();
@@ -246,4 +258,3 @@ public class Calculator extends JFrame {
         });
     }
 }
-
