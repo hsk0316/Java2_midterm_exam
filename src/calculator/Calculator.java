@@ -9,12 +9,12 @@ import java.awt.event.ActionListener;
  * 계산기 GUI 프로그램.
  * 이 클래스는 JFrame을 확장하여 계산기의 기본 UI를 구성합니다.
  * 더하기, 빼기, 곱하기, 나누기 등의 연산 버튼을 포함하며, 소수점 및 +/- 연산, C 등의 기능을 제공합니다.
- * 콤보박스를 통해 1/x, 제곱(x^2), 제곱근(√x) 등의 함수 연산을 수행할 수 있도록 지원합니다.
+ * 또한 콤보박스를 통해 1/x, 제곱(x^2), 제곱근(√x) 등의 함수 연산을 수행할 수 있습니다.
  *
- * <p>오류 메시지가 표시된 후 오류 상태를 초기화하고, 오류 메시지 표시 시 숫자 입력이 정상적으로 되돌아가도록 개선되었습니다.
- * 또한, 0으로 나누기와 음수 제곱근 연산 시 오류를 처리하여 프로그램의 안정성을 높였습니다.</p>
+ * <p>이 버전에서는 버튼 스타일이 개선되었고, 각 버튼에 색상을 지정하였습니다.
+ * 오류 메시지가 표시된 후 오류 상태를 초기화하고, 오류 메시지 표시 시 숫자 입력이 정상적으로 되돌아가도록 개선되었습니다.</p>
  *
- * @version 5.1.0
+ * @version 5.2.0
  * @since 2024-10-17
  *
  * @created 2024-10-17
@@ -34,6 +34,7 @@ import java.awt.event.ActionListener;
  *   <li>2024-10-31: 부동 소수점 오류 처리 기능 추가 (한승규)</li>
  *   <li>2024-11-01: 콤보박스 기능 추가로 1/x, 제곱, 제곱근 연산 추가 (한승규)</li>
  *   <li>2024-11-01: "1/x"에 대한 0으로 나누기와 음수 제곱근 오류 처리 (한승규)</li>
+ *   <li>2024-11-01: 버튼 스타일 색상 개선 및 디자인 수정 (한승규)</li>
  * </ul>
  */
 public class Calculator extends JFrame {
@@ -72,6 +73,7 @@ public class Calculator extends JFrame {
      *   <li>2024-10-31: 부동 소수점 오류 처리 기능 추가 (한승규)</li>
      *   <li>2024-11-01: 콤보박스 기능 추가로 1/x, 제곱, 제곱근 연산 추가 (한승규)</li>
      *   <li>2024-11-01: "1/x"에 대한 0으로 나누기와 음수 제곱근 오류 처리 (한승규)</li>
+     *   <li>2024-11-01: 버튼 스타일 색상 개선 및 디자인 수정 (한승규)</li>
      * </ul>
      */
     public Calculator() {
@@ -116,15 +118,26 @@ public class Calculator extends JFrame {
                 "0", "+/-", ".", "="
         };
 
-        // 버튼 추가 및 이벤트 리스너 설정
+        // 버튼 스타일 색상 디자인
         for (String text : buttons) {
+            JButton button;
             if (text.equals("")) {
-                buttonPanel.add(functionComboBox);  // 콤보박스를 첫 번째 위치에 추가
+                buttonPanel.add(functionComboBox);
                 continue;
+            } else {
+                button = new JButton(text);
             }
 
-            JButton button = new JButton(text);
             button.setFont(new Font("Arial", Font.BOLD, 20));
+
+            // 스타일 지정
+            if ("0123456789".contains(text)) {
+                button.setBackground(Color.LIGHT_GRAY);  // 숫자 버튼 색상
+            } else if ("÷×-+".contains(text)) {
+                button.setBackground(Color.ORANGE);  // 연산자 버튼 색상
+            } else {
+                button.setBackground(new Color(173, 216, 230));  // 함수 및 특수 버튼 색상 (Light Blue)
+            }
 
             // 숫자 버튼 처리
             if ("0123456789".contains(text)) {
@@ -140,6 +153,7 @@ public class Calculator extends JFrame {
                     }
                 });
             }
+
             // 연산자 버튼 처리
             else if ("÷×-+".contains(text)) {
                 button.addActionListener(e -> {
@@ -154,6 +168,7 @@ public class Calculator extends JFrame {
                     }
                 });
             }
+
             // '=' 버튼 처리
             else if (text.equals("=")) {
                 button.addActionListener(e -> {
@@ -179,6 +194,7 @@ public class Calculator extends JFrame {
                                     }
                                 }
                             }
+
                             // 부동 소수점 오류 확인
                             if (Double.isNaN(result) || Double.isInfinite(result)) {
                                 display.setText("ERROR");
@@ -195,6 +211,7 @@ public class Calculator extends JFrame {
                     }
                 });
             }
+
             // +/- 버튼 처리 수정
             else if (text.equals("+/-")) {
                 button.addActionListener(e -> {
@@ -215,6 +232,7 @@ public class Calculator extends JFrame {
                     }
                 });
             }
+
             // 소수점 버튼 처리
             else if (text.equals(".")) {
                 button.addActionListener(e -> {
@@ -228,6 +246,7 @@ public class Calculator extends JFrame {
                     }
                 });
             }
+
             // ← 버튼 처리: 마지막 문자 삭제 및 소수점 초기화
             else if (text.equals("←")) {
                 button.addActionListener(e -> {
@@ -248,6 +267,7 @@ public class Calculator extends JFrame {
                     }
                 });
             }
+
             // C 버튼 처리: 모든 초기화
             else if (text.equals("C")) {
                 button.addActionListener(e -> {
