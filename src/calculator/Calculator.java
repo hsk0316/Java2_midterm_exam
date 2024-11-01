@@ -14,12 +14,13 @@ import java.awt.event.ActionListener;
  * <p>이 버전에서는 버튼 스타일이 개선되었고, 각 버튼에 색상을 지정하였습니다.
  * 오류 메시지가 표시된 후 오류 상태를 초기화하고, 오류 메시지 표시 시 숫자 입력이 정상적으로 되돌아가도록 개선되었습니다.</p>
  *
- * @version 5.2.0
+ * @author 한승규
+ * @version 5.2.1
  * @since 2024-10-17
  *
  * @created 2024-10-17
  * @lastModified 2024-11-01
- *
+ * @see <a href="https://limunosekai.github.io/java/2021/01/04/java-day-20/">Java Day 20</a>, <a href="https://www.openai.com/chatgpt">ChatGPT - OpenAI</a>
  * @changelog
  * <ul>
  *   <li>2024-10-17: 최초 생성 UI 디자인, 버튼 배치 (한승규)</li>
@@ -35,6 +36,7 @@ import java.awt.event.ActionListener;
  *   <li>2024-11-01: 콤보박스 기능 추가로 1/x, 제곱, 제곱근 연산 추가 (한승규)</li>
  *   <li>2024-11-01: "1/x"에 대한 0으로 나누기와 음수 제곱근 오류 처리 (한승규)</li>
  *   <li>2024-11-01: 버튼 스타일 색상 개선 및 디자인 수정 (한승규)</li>
+ *   <li>2024-11-01: 연산 오류와 불완전한 수식 입력 시의 오류 처리 추가 (한승규)</li>
  * </ul>
  */
 public class Calculator extends JFrame {
@@ -74,6 +76,7 @@ public class Calculator extends JFrame {
      *   <li>2024-11-01: 콤보박스 기능 추가로 1/x, 제곱, 제곱근 연산 추가 (한승규)</li>
      *   <li>2024-11-01: "1/x"에 대한 0으로 나누기와 음수 제곱근 오류 처리 (한승규)</li>
      *   <li>2024-11-01: 버튼 스타일 색상 개선 및 디자인 수정 (한승규)</li>
+     *   <li>2024-11-01: 연산 오류와 불완전한 수식 입력 시의 오류 처리 추가 (한승규)</li>
      * </ul>
      */
     public Calculator() {
@@ -136,7 +139,7 @@ public class Calculator extends JFrame {
             } else if ("÷×-+".contains(text)) {
                 button.setBackground(Color.ORANGE);  // 연산자 버튼 색상
             } else {
-                button.setBackground(new Color(173, 216, 230));  // 함수 및 특수 버튼 색상 (Light Blue)
+                button.setBackground(new Color(173, 216, 230));  // 함수 및 특수 버튼 색상
             }
 
             // 숫자 버튼 처리
@@ -173,37 +176,42 @@ public class Calculator extends JFrame {
             else if (text.equals("=")) {
                 button.addActionListener(e -> {
                     try {
+                        // 공백을 기준으로 분할
                         String[] parts = display.getText().split(" ");
-                        if (parts.length == 3) {
-                            num1 = Double.parseDouble(parts[0]);
-                            operator = parts[1];
-                            num2 = Double.parseDouble(parts[2]);
+                        // 식이 불완전한지 확인
+                        if (parts.length != 3) {
+                            display.setText("ERROR");  // 식이 불완전한 경우 표시
+                            errorShown = true;
+                            return;
+                        }
 
-                            double result = 0;
-                            switch (operator) {
-                                case "+" -> result = num1 + num2;
-                                case "-" -> result = num1 - num2;
-                                case "×" -> result = num1 * num2;
-                                case "÷" -> {
-                                    if (num2 == 0) {
-                                        display.setText("ERROR");  // 0으로 나누기 시 오류 표시
-                                        errorShown = true;
-                                        return;
-                                    } else {
-                                        result = num1 / num2;
-                                    }
+                        num1 = Double.parseDouble(parts[0]);
+                        operator = parts[1];
+                        num2 = Double.parseDouble(parts[2]);
+
+                        double result = 0;
+                        switch (operator) {
+                            case "+" -> result = num1 + num2;
+                            case "-" -> result = num1 - num2;
+                            case "×" -> result = num1 * num2;
+                            case "÷" -> {
+                                if (num2 == 0) {
+                                    display.setText("ERROR");  // 0으로 나누기 시 오류 표시
+                                    errorShown = true;
+                                    return;
+                                } else {
+                                    result = num1 / num2;
                                 }
                             }
-
-                            // 부동 소수점 오류 확인
-                            if (Double.isNaN(result) || Double.isInfinite(result)) {
-                                display.setText("ERROR");
-                                errorShown = true;
-                            } else {
-                                display.setText(String.valueOf(result));
-                                num1 = result;
-                                decimalUsed = false;
-                            }
+                        }
+                        // 부동 소수점 오류 확인
+                        if (Double.isNaN(result) || Double.isInfinite(result)) {
+                            display.setText("ERROR");
+                            errorShown = true;
+                        } else {
+                            display.setText(String.valueOf(result));
+                            num1 = result;
+                            decimalUsed = false;
                         }
                     } catch (NumberFormatException ex) {
                         display.setText("ERROR");  // 형식 오류 처리
@@ -211,6 +219,7 @@ public class Calculator extends JFrame {
                     }
                 });
             }
+
 
             // +/- 버튼 처리 수정
             else if (text.equals("+/-")) {
