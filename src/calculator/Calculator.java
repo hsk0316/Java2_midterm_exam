@@ -9,11 +9,12 @@ import java.awt.event.ActionListener;
  * 계산기 GUI 프로그램.
  * 이 클래스는 JFrame을 확장하여 계산기의 기본 UI를 구성합니다.
  * 더하기, 빼기, 곱하기, 나누기 등의 연산 버튼을 포함하며, 소수점 및 +/- 연산, C 등의 기능을 제공합니다.
- * <p>추가적으로, 콤보박스를 통해 1/x, 제곱, 제곱근 등의 함수 연산을 수행할 수 있도록 지원합니다.</p>
+ * 콤보박스를 통해 1/x, 제곱(x^2), 제곱근(√x) 등의 함수 연산을 수행할 수 있도록 지원합니다.
  *
- * <p>오류 메시지가 표시된 후 오류 상태를 초기화하고, 오류 메시지 표시 시 숫자 입력이 정상적으로 되돌아가도록 개선되었습니다.</p>
+ * <p>오류 메시지가 표시된 후 오류 상태를 초기화하고, 오류 메시지 표시 시 숫자 입력이 정상적으로 되돌아가도록 개선되었습니다.
+ * 또한, 0으로 나누기와 음수 제곱근 연산 시 오류를 처리하여 프로그램의 안정성을 높였습니다.</p>
  *
- * @version 5.0.0
+ * @version 5.1.0
  * @since 2024-10-17
  *
  * @created 2024-10-17
@@ -31,7 +32,8 @@ import java.awt.event.ActionListener;
  *   <li>2024-10-31: 오류 메시지 표시 후 입력 초기화 추가 (한승규)</li>
  *   <li>2024-10-31: 0으로 나누기 시 오류 메시지 추가 (한승규)</li>
  *   <li>2024-10-31: 부동 소수점 오류 처리 기능 추가 (한승규)</li>
- *   <li>2024-11-01: 콤보박스 기능 추가로 1/x, 제곱, 제곱근 연산 추가(GUI 만), CE 버튼 및 기능 삭제 (한승규)</li>
+ *   <li>2024-11-01: 콤보박스 기능 추가로 1/x, 제곱, 제곱근 연산 추가 (한승규)</li>
+ *   <li>2024-11-01: "1/x"에 대한 0으로 나누기와 음수 제곱근 오류 처리 (한승규)</li>
  * </ul>
  */
 public class Calculator extends JFrame {
@@ -50,11 +52,12 @@ public class Calculator extends JFrame {
     /**
      * 계산기 GUI를 초기화하는 생성자입니다.
      * 프레임, 디스플레이, 콤보박스 및 버튼들을 설정하고 레이아웃에 배치합니다.
-     * 이 생성자는 계산기의 GUI 요소들을 구성하는 역할을 합니다.
-     * <p>콤보박스를 통해 1/x, 제곱, 제곱근 연산을 수행할 수 있습니다.</p>
+     * 이 생성자는 계산기의 GUI 요소들을 구성하고 이벤트 리스너를 추가하여 기능을 제공합니다.
+     * 콤보박스를 통해 1/x, 제곱(x^2), 제곱근(√x) 연산을 수행할 수 있습니다.
      *
      * @created 2024-10-17
      * @lastModified 2024-11-01
+     *
      * @changelog
      * <ul>
      *   <li>2024-10-17: 최초 생성 UI 디자인, 버튼 배치 (한승규)</li>
@@ -67,7 +70,8 @@ public class Calculator extends JFrame {
      *   <li>2024-10-31: 오류 메시지 표시 후 입력 초기화 추가 (한승규)</li>
      *   <li>2024-10-31: 0으로 나누기 시 오류 메시지 추가 (한승규)</li>
      *   <li>2024-10-31: 부동 소수점 오류 처리 기능 추가 (한승규)</li>
-     *   <li>2024-11-01: 콤보박스 기능 추가로 1/x, 제곱, 제곱근 연산 추가(GUI 만), CE 버튼 및 기능 삭제 (한승규)</li>
+     *   <li>2024-11-01: 콤보박스 기능 추가로 1/x, 제곱, 제곱근 연산 추가 (한승규)</li>
+     *   <li>2024-11-01: "1/x"에 대한 0으로 나누기와 음수 제곱근 오류 처리 (한승규)</li>
      * </ul>
      */
     public Calculator() {
@@ -270,9 +274,15 @@ public class Calculator extends JFrame {
         try {
             double value = Double.parseDouble(display.getText());
             double result = switch (function) {
-                case "1/x" -> 1 / value;
+                case "1/x" -> {
+                    if (value == 0) throw new ArithmeticException(); // 0으로 나누기 예외 처리
+                    yield 1 / value;
+                }
                 case "x^2" -> Math.pow(value, 2);
-                case "√x" -> Math.sqrt(value);
+                case "√x" -> {
+                    if (value < 0) throw new ArithmeticException(); // 음수의 제곱근 예외 처리
+                    yield Math.sqrt(value);
+                }
                 default -> value;
             };
             display.setText(String.valueOf(result));
